@@ -26,9 +26,8 @@ public class OrientationReadingService extends Service implements SensorEventLis
 
     public void onCreate() {
         super.onCreate();
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        sendBroadcastOrientation(0);
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         Sensor magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -70,20 +69,22 @@ public class OrientationReadingService extends Service implements SensorEventLis
                     accelerometerReading, magnetometerReading);
 
             if (readingSuccess) { // Check whether the matrix was successfully created
-                // Express the updated rotation matrix as three orientation angles.
+                // Express the updated rotation matrix as three orientation angles and store them in "orientationAngles"
                 SensorManager.getOrientation(rotationMatrix, orientationAngles);
 
-                double azimuth = Math.toDegrees(orientationAngles[0]); //azimuth = angle between the device's current compass heading and magnetic north (z-axis)
-                sendBroadcastOrientation(azimuth);
+                //Send broadcast
+                broadcastOrientation(orientationAngles);
             }
         }
     }
 
-    private void sendBroadcastOrientation(double azimuth){
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {    }
+
+    private void broadcastOrientation(float[] orientationAngles){
+        double azimuth = Math.toDegrees(orientationAngles[0]); //azimuth = angle between the device's current compass heading and magnetic north (z-axis)
+
         Intent intent = new Intent(ACTION_ORIENTATION_BROADCAST);
         intent.putExtra(EXTRA_AZIMUTH, azimuth);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
-
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {    }
 }
