@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VIRMA">
         <activity
-            android:name=".SensorActivity"
+            android:name=".UploadActivity"
             android:exported="false" />
         <activity
             android:name=".ConnectActivity"
@@ -26,10 +26,14 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:enabled="true"
+            android:name="com.example.virma.OrientationReadingService">
+        </service>
+
     </application>
 
 </manifest>

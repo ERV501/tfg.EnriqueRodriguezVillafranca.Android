@@ -31,7 +31,6 @@ public class ConnectActivity extends AppCompatActivity {
     int SELECT_IMAGE_CODE = 1001; //In order to check if the code is correct
     int UPLOAD_IMAGE_CODE = 1002; //In order to check if the code is correct
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connect);
@@ -45,7 +44,6 @@ public class ConnectActivity extends AppCompatActivity {
         // handle the Choose Image button to trigger
         // the image chooser function
         btnSelectPhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
                 imageChooser();
             }
@@ -54,7 +52,6 @@ public class ConnectActivity extends AppCompatActivity {
         // handle the Upload Image button to trigger
         // the image uploader function
         btnUploadPhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
                 imageUploader();
             }
@@ -78,7 +75,7 @@ public class ConnectActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(ConnectActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED)
             ActivityCompat.requestPermissions(ConnectActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, UPLOAD_IMAGE_CODE);
 
-        startActivity(new Intent(this, SensorActivity.class));
+        startActivity(new Intent(this, UploadActivity.class));
     }
 
     // Called when a launched activity exits,

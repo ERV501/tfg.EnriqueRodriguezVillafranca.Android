@@ -1,15 +1,21 @@
 package com.example.virma;
 
-import android.app.Activity;
+import android.app.Service;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Bundle;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.os.IBinder;
 
-public class SensorActivity extends Activity implements SensorEventListener {
+import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+public class OrientationReadingService extends Service implements SensorEventListener {
+
+    public static final String
+        ACTION_ORIENTATION_BROADCAST = OrientationReadingService.class.getName() + "OrientationBroadcast",
+        EXTRA_AZIMUTH = "extra_azimuth";
 
     private SensorManager mSensorManager;
 
@@ -18,18 +24,11 @@ public class SensorActivity extends Activity implements SensorEventListener {
     private float[] rotationMatrix = new float[9];
     private float[] orientationAngles = new float[3]; // will contain: azimuth, pitch and roll
 
-    TextView textSensorUpdate;
-
-    public final void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sensor);
-        textSensorUpdate = (TextView) findViewById(R.id.textSensorUpdate);
-
+    public void onCreate() {
+        super.onCreate();
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-    }
 
-    protected void onResume(){
-        super.onResume();
+        sendBroadcastOrientation(0);
 
         Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         Sensor magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -37,21 +36,26 @@ public class SensorActivity extends Activity implements SensorEventListener {
         // SENSOR_DELAY_NORMAL -> desired delay between two consecutive sensor data readings
         // SENSOR_DELAY_UI -> maximum delay between our sensor data readings
 
-        if(accelerometer != null){
+        if (accelerometer != null) {
             mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
         }
 
-        if(magnetometer != null){
+        if (magnetometer != null) {
             mSensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
         }
     }
 
-    protected void onPause() {
-        super.onPause();
+    public void onDestroy() {
+        super.onDestroy();
         mSensorManager.unregisterListener(this);
     }
 
+    @Nullable
     @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
     public void onSensorChanged(SensorEvent sensorEvent) {
 
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
@@ -70,11 +74,16 @@ public class SensorActivity extends Activity implements SensorEventListener {
                 SensorManager.getOrientation(rotationMatrix, orientationAngles);
 
                 double azimuth = Math.toDegrees(orientationAngles[0]); //azimuth = angle between the device's current compass heading and magnetic north (z-axis)
-                textSensorUpdate.setText(String.format("%.2f", azimuth));
+                sendBroadcastOrientation(azimuth);
             }
         }
     }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) { }
+    private void sendBroadcastOrientation(double azimuth){
+        Intent intent = new Intent(ACTION_ORIENTATION_BROADCAST);
+        intent.putExtra(EXTRA_AZIMUTH, azimuth);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {    }
 }
