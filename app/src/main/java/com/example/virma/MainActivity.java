@@ -41,8 +41,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, ConnectActivity.class));
     }
 
-    private boolean askPermissions(){
-        boolean perm_location = false;
+    private void askPermissions(){
 
         if(Build.VERSION.SDK_INT >= 23
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -57,14 +56,10 @@ public class MainActivity extends AppCompatActivity {
                                             Manifest.permission.WRITE_EXTERNAL_STORAGE}
                                             ,RQ_PERMISSIONS);
 
-            perm_location = true;
-
         }else{
             // Permissions are granted, enable Login
             btnConnect.setEnabled(true);
         }
-
-        return perm_location;
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

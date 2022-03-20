@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class UploadActivity extends AppCompatActivity {
@@ -21,7 +20,7 @@ public class UploadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_upload);
 
         //Receive orientation readings
-        textOrientation = (TextView) findViewById(R.id.textOrientation);
+        textOrientation = (TextView) findViewById(R.id.textOrientationUpload);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
             new BroadcastReceiver() {
@@ -33,7 +32,7 @@ public class UploadActivity extends AppCompatActivity {
         );
 
         //Receive location readings
-        textLocation = (TextView) findViewById(R.id.textLocation);
+        textLocation = (TextView) findViewById(R.id.textLocationUpload);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 new BroadcastReceiver() {

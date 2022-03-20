@@ -7,21 +7,21 @@
     tools:context=".UploadActivity">
 
     <TextView
-        android:id="@+id/textOrientation"
+        android:id="@+id/textOrientationUpload"
         android:layout_width="122dp"
         android:layout_height="51dp"
         android:layout_marginBottom="219dp"
         android:clickable="false"
         android:gravity="center"
         android:text="Orientation"
-        app:layout_constraintBottom_toTopOf="@+id/textLocation"
+        app:layout_constraintBottom_toTopOf="@+id/textLocationUpload"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textLocation"
+        android:id="@+id/textLocationUpload"
         android:layout_width="120dp"
         android:layout_height="67dp"
         android:gravity="center"
@@ -30,5 +30,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textOrientation" />
+        app:layout_constraintTop_toBottomOf="@+id/textOrientationUpload" />
 </androidx.constraintlayout.widget.ConstraintLayout>
