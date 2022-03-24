@@ -8,64 +8,60 @@
     tools:context=".ConnectActivity">
 
     <TextView
-        android:id="@+id/textOrientation"
-        android:layout_width="114dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="3dp"
-        android:layout_marginEnd="181dp"
-        android:layout_marginBottom="296dp"
-        android:clickable="false"
-        android:gravity="center"
-        android:text="Orientation"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/textLocation"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/IVPreviewImage"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <TextView
         android:id="@+id/textLocation"
         android:layout_width="116dp"
         android:layout_height="55dp"
-        android:layout_marginTop="3dp"
-        android:layout_marginBottom="296dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginEnd="100dp"
+        android:layout_marginBottom="36dp"
         android:gravity="center"
         android:text="Location"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnTakePhoto"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/IVPreviewImage"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintStart_toEndOf="@+id/textOrientation" />
+
+    <TextView
+        android:id="@+id/textOrientation"
+        android:layout_width="114dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="100dp"
+        android:layout_marginEnd="100dp"
+        android:layout_marginBottom="36dp"
+        android:clickable="false"
+        android:gravity="center"
+        android:text="Orientation"
+        app:layout_constraintBottom_toTopOf="@+id/btnTakePhoto"
+        app:layout_constraintEnd_toStartOf="@+id/textLocation"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/btnTakePhoto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Take Photo"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnUploadPhoto"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.667" />
+        app:layout_constraintVertical_bias="0.933" />
 
     <Button
         android:id="@+id/btnUploadPhoto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="80dp"
         android:text="Upload Photo"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.856" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/IVPreviewImage"
         android:layout_width="0dp"
-        android:layout_height="300dp"
+        android:layout_height="0dp"
         android:layout_below="@id/btnTakePhoto"
-        app:layout_constraintBottom_toTopOf="@+id/btnTakePhoto"
+        app:layout_constraintBottom_toTopOf="@+id/textOrientation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

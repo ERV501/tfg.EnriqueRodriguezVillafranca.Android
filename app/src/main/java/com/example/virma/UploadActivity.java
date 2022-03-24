@@ -1,59 +1,95 @@
 package com.example.virma;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 
 public class UploadActivity extends AppCompatActivity {
 
-    TextView textOrientation;
-    TextView textLocation;
+    Button btnAccept; //Select image button
+    Button btnCancel; //Upload image button
+
+    ImageView IVPreviewImageUpload; //In order to preview selected image
+
+    TextView textOrientationUpload; //Device orientation readings towards magnetic north
+    TextView textLocationUpload; //Device location readings
+
+    //Image info storage variables
+    Bitmap bmImage;
+    String b64Image;
+    double azimuth;
+    double latitude;
+    double longitude;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
 
-        //Receive orientation readings
-        textOrientation = (TextView) findViewById(R.id.textOrientationUpload);
+        // register the UI widgets with their appropriate IDs
+        btnAccept = findViewById(R.id.btnAccept);
+        btnCancel = findViewById(R.id.btnCancel);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-            new BroadcastReceiver() {
-                public void onReceive(Context context, Intent intent) {
-                    double azimuth = intent.getDoubleExtra(OrientationReadingService.EXTRA_AZIMUTH, 0);
-                    textOrientation.setText(String.format("%.2f", azimuth));
-                }
-            }, new IntentFilter(OrientationReadingService.ACTION_ORIENTATION_BROADCAST)
-        );
+        IVPreviewImageUpload = findViewById(R.id.IVPreviewImageUpload);
 
-        //Receive location readings
-        textLocation = (TextView) findViewById(R.id.textLocationUpload);
+        textOrientationUpload = findViewById(R.id.textOrientationUpload);
+        textLocationUpload = findViewById(R.id.textLocationUpload);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                new BroadcastReceiver() {
-                    public void onReceive(Context context, Intent intent) {
-                        double latitude = intent.getDoubleExtra(LocationReadingService.EXTRA_LAT, 0);
-                        double longitude = intent.getDoubleExtra(LocationReadingService.EXTRA_LON, 0);
-                        textLocation.setText(String.format("Latitude: %.2f \n Longitude: %.2f ", latitude, longitude));
-                    }
-                }, new IntentFilter(LocationReadingService.ACTION_LOCATION_BROADCAST)
-        );
+        //Get data to upload
+        Bundle extras = getIntent().getExtras();
+        if(extras != null){
+            bmImage = (Bitmap) extras.get("imageBitmap");
+            b64Image = extras.getString("image64");
+            azimuth = extras.getDouble("azimuth");
+            latitude = extras.getDouble("latitude");
+            longitude = extras.getDouble("longitude");
+        }
+
+        IVPreviewImageUpload.setImageBitmap(bmImage); //Update preview
+        textOrientationUpload.setText(String.format("%.2f", azimuth)); //Set final value
+        textLocationUpload.setText(String.format("Latitude: %.2f \n Longitude: %.2f ", latitude, longitude)); //Set final value
+
+        btnAccept.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                createJSON();
+            }
+        });
     }
 
-    protected void onResume() {
-        super.onResume();
-        startService(new Intent(this, OrientationReadingService.class));
-        startService(new Intent(this, LocationReadingService.class));
-    }
+    public void createJSON(){
+        JSONObject jsonData = new JSONObject();
+        String jsonDataString = null;
 
-    protected void onPause() {
-        super.onPause();
-        stopService(new Intent(this, OrientationReadingService.class));
-        stopService(new Intent(this, LocationReadingService.class));
+        try{
+            jsonData.put("image64",b64Image);
+            jsonData.put("azimuth",Double.toString(azimuth));
+            jsonData.put("latitude",Double.toString(latitude));
+            jsonData.put("longitude",Double.toString(longitude));
+
+            jsonDataString = jsonData.toString(); //JSON data to upload
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        //Debug JSON data
+        int maxLogSize = 1000;
+        for(int i = 0; i <= jsonDataString.length() / maxLogSize; i++) {
+            int start = i * maxLogSize;
+            int end = (i+1) * maxLogSize;
+            end = end > jsonDataString.length() ? jsonDataString.length() : end;
+            Log.v("JSON", jsonDataString.substring(start, end));
+        }
     }
 }

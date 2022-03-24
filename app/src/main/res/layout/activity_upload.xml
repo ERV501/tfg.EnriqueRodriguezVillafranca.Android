@@ -6,29 +6,71 @@
     android:layout_height="match_parent"
     tools:context=".UploadActivity">
 
-    <TextView
-        android:id="@+id/textOrientationUpload"
-        android:layout_width="122dp"
-        android:layout_height="51dp"
-        android:layout_marginBottom="219dp"
-        android:clickable="false"
-        android:gravity="center"
-        android:text="Orientation"
-        app:layout_constraintBottom_toTopOf="@+id/textLocationUpload"
+    <ImageView
+        android:id="@+id/IVPreviewImageUpload"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_below="@id/textLocationUpload"
+        app:layout_constraintBottom_toTopOf="@+id/textOrientationUpload"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
     <TextView
         android:id="@+id/textLocationUpload"
-        android:layout_width="120dp"
-        android:layout_height="67dp"
+        android:layout_width="116dp"
+        android:layout_height="55dp"
+        android:layout_marginEnd="44dp"
+        android:layout_marginBottom="220dp"
         android:gravity="center"
         android:text="Location"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintTop_toBottomOf="@+id/IVPreviewImageUpload"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/textOrientationUpload"
+        android:layout_width="114dp"
+        android:layout_height="56dp"
+        android:layout_marginBottom="220dp"
+        android:clickable="false"
+        android:gravity="center"
+        android:text="Orientation"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/textLocationUpload"
+        app:layout_constraintHorizontal_bias="0.488"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textOrientationUpload" />
+        app:layout_constraintTop_toBottomOf="@+id/IVPreviewImage"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/btnAccept"
+        android:layout_width="107dp"
+        android:layout_height="53dp"
+        android:layout_marginTop="67dp"
+        android:layout_marginEnd="52dp"
+        android:layout_marginBottom="100dp"
+        android:text="Accept"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textLocationUpload"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <Button
+        android:id="@+id/btnCancel"
+        android:layout_width="105dp"
+        android:layout_height="56dp"
+        android:layout_marginEnd="72dp"
+        android:layout_marginBottom="92dp"
+        android:text="Cancel"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnAccept"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textOrientationUpload"
+        app:layout_constraintVertical_bias="0.893" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

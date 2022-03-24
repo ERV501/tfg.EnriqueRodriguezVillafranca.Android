@@ -40,6 +40,7 @@ public class ConnectActivity extends AppCompatActivity {
     TextView textLocation; //Device location readings
 
     //Image info storage variables
+    Bitmap bmImage;
     String b64Image;
     double azimuth;
     double latitude;
@@ -66,12 +67,15 @@ public class ConnectActivity extends AppCompatActivity {
 
         // register the UI widgets with their appropriate IDs
         btnTakePhoto = findViewById(R.id.btnTakePhoto);
-        IVPreviewImage = findViewById(R.id.IVPreviewImage);
-
         btnUploadPhoto = findViewById(R.id.btnUploadPhoto);
+
+        IVPreviewImage = findViewById(R.id.IVPreviewImage);
 
         textOrientation = findViewById(R.id.textOrientation);
         textLocation = findViewById(R.id.textLocation);
+
+        //Upload deactivated until a photo has been taken
+        btnUploadPhoto.setEnabled(false);
 
         // handle the Choose Image button to trigger
         // the image chooser function
@@ -131,7 +135,7 @@ public class ConnectActivity extends AppCompatActivity {
 
                 //Get the photo data
                 Bundle extras = data.getExtras();
-                Bitmap bmImage = (Bitmap) extras.get("data");
+                bmImage = (Bitmap) extras.get("data");
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
                 //Compress to JPEG format, at 100% quality and store in outputStream
@@ -143,6 +147,7 @@ public class ConnectActivity extends AppCompatActivity {
                 if (null != bmImage) {
                     IVPreviewImage.setImageBitmap(bmImage); //Update preview
                     stopReadingServices(); //Stop orientation and location services once the photo has been taken
+                    btnUploadPhoto.setEnabled(true); //Enable upload button
                 }
 
             }
@@ -187,6 +192,14 @@ public class ConnectActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(ConnectActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED)
             ActivityCompat.requestPermissions(ConnectActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, UPLOAD_PHOTO_CODE);
 
-        startActivity(new Intent(this, UploadActivity.class));
+        Intent uploadIntent = new Intent(ConnectActivity.this, UploadActivity.class);
+
+        uploadIntent.putExtra("imageBitmap", bmImage);
+        uploadIntent.putExtra("image64", b64Image);
+        uploadIntent.putExtra("azimuth", azimuth);
+        uploadIntent.putExtra("latitude", latitude);
+        uploadIntent.putExtra("longitude", longitude);
+
+        startActivity(uploadIntent);
     }
 }
