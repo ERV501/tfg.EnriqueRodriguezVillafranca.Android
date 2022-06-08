@@ -2,7 +2,6 @@ package com.example.virma;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -11,12 +10,16 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class UploadActivity extends AppCompatActivity {
+
+    public static final String
+            SERVER_URL = "http://192.168.1.135:3000/images";
 
     Button btnAccept; //Select image button
     Button btnCancel; //Upload image button
@@ -28,7 +31,7 @@ public class UploadActivity extends AppCompatActivity {
 
     //Image info storage variables
     Bitmap bmImage;
-    String b64Image;
+    String imageFile;
     double azimuth;
     double latitude;
     double longitude;
@@ -50,7 +53,7 @@ public class UploadActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         if(extras != null){
             bmImage = (Bitmap) extras.get("imageBitmap");
-            b64Image = extras.getString("image64");
+            imageFile = extras.getString("imageFile");
             azimuth = extras.getDouble("azimuth");
             latitude = extras.getDouble("latitude");
             longitude = extras.getDouble("longitude");
@@ -65,31 +68,64 @@ public class UploadActivity extends AppCompatActivity {
                 createJSON();
             }
         });
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     public void createJSON(){
         JSONObject jsonData = new JSONObject();
-        String jsonDataString = null;
 
         try{
-            jsonData.put("image64",b64Image);
+            jsonData.put("imageFile",imageFile);
             jsonData.put("azimuth",Double.toString(azimuth));
             jsonData.put("latitude",Double.toString(latitude));
             jsonData.put("longitude",Double.toString(longitude));
 
-            jsonDataString = jsonData.toString(); //JSON data to upload
-
-        } catch (JSONException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        //Debug JSON data
-        int maxLogSize = 1000;
-        for(int i = 0; i <= jsonDataString.length() / maxLogSize; i++) {
-            int start = i * maxLogSize;
-            int end = (i+1) * maxLogSize;
-            end = end > jsonDataString.length() ? jsonDataString.length() : end;
-            Log.v("JSON", jsonDataString.substring(start, end));
-        }
+        //Send JSON
+        PostJSON(jsonData);
+    }
+
+    public void PostJSON(JSONObject jsonData){
+        Thread threadPost = new Thread(() -> {
+            try {
+
+                //Stablish connection
+                URL server = new URL(SERVER_URL);
+                HttpURLConnection req = (HttpURLConnection) server.openConnection();
+
+                //Configure POST request
+                req.setRequestProperty("Content-Type", "application/json; charset=utf-8"); //Tipo de contenido enviado, codificado como UTF-8
+                req.setRequestProperty("Accept","application/json");
+                req.setDoOutput(true); //Para poder enviar
+                req.setRequestMethod("POST"); //POST request
+
+                //Send JSON
+                DataOutputStream writer = new DataOutputStream(req.getOutputStream());
+
+                String finalData = jsonData.toString().replace("\\","");
+                writer.writeBytes(finalData);
+
+                Log.d("JSON",finalData);
+
+                //Close connection
+                writer.flush();
+                writer.close();
+
+                req.disconnect();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        threadPost.start();
     }
 }

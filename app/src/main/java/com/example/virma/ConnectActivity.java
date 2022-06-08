@@ -18,12 +18,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class ConnectActivity extends AppCompatActivity {
@@ -41,7 +45,7 @@ public class ConnectActivity extends AppCompatActivity {
 
     //Image info storage variables
     Bitmap bmImage;
-    String b64Image;
+    String imageFile;
     double azimuth;
     double latitude;
     double longitude;
@@ -100,10 +104,7 @@ public class ConnectActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(ConnectActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, TAKE_PHOTO_CODE);
 
         Intent intent = new Intent((MediaStore.ACTION_IMAGE_CAPTURE)); //Create new instance
-        //intent.setType("image/*"); //Any image type
-        //intent.setAction(Intent.ACTION_GET_CONTENT); //Action to be performed
 
-        //startActivityForResult(Intent.createChooser(intent, "Take Photo"), TAKE_PHOTO_CODE); //Start activity and wait for it to complete
         startActivityForResult(intent, TAKE_PHOTO_CODE); //Start camera and wait for it to complete
 
         startReadingServices(); //Start orientation and location services
@@ -133,16 +134,36 @@ public class ConnectActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK) { //Check the activity has started correctly
             if (requestCode == TAKE_PHOTO_CODE) { //Check the code is valid
 
+                //Temp file for saving capture
+                Uri uri = null;
+                String fileName = null;
+
+                try {
+                    File tempFile = File.createTempFile("virma", ".png", null); //Directorio temporal del dispositivo por defecto
+                    fileName = tempFile.getAbsolutePath();
+                    uri = Uri.parse(String.valueOf(tempFile));
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
                 //Get the photo data
                 Bundle extras = data.getExtras();
                 bmImage = (Bitmap) extras.get("data");
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
+                try (FileOutputStream outputFile = new FileOutputStream(fileName)){
+                    outputFile.write(outputStream.toByteArray());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 //Compress to JPEG format, at 100% quality and store in outputStream
                 bmImage.compress(Bitmap.CompressFormat.JPEG, 100, outputStream); // bm is the bitmap object
                 byte[] b = outputStream.toByteArray();
 
-                b64Image = Base64.encodeToString(b,Base64.DEFAULT); //Base64 image to write in JSON
+                imageFile = fileName; //Image to send
+                Log.d("FILEPATH",fileName);
 
                 if (null != bmImage) {
                     IVPreviewImage.setImageBitmap(bmImage); //Update preview
@@ -167,26 +188,6 @@ public class ConnectActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(locationReceiver);
     }
 
-    // En caso de querer seleccionar desde la galeria (necesario?)
-    // Ejemplo de https://guides.codepath.com/android/Accessing-the-Camera-and-Stored-Media#custom-gallery-selector
-    public Bitmap loadFromUri(Uri photoUri) {
-        Bitmap image = null;
-        try {
-            // check version of Android on device
-            if(Build.VERSION.SDK_INT > 27){
-                // On newer versions of Android, use the new decodeBitmap method
-                ImageDecoder.Source source = ImageDecoder.createSource(this.getContentResolver(), photoUri);
-                image = ImageDecoder.decodeBitmap(source);
-            } else {
-                // On older versions of Android by use the old getBitmap
-                image = MediaStore.Images.Media.getBitmap(this.getContentResolver(), photoUri);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return image;
-    }
-
     public void imageUploader() {
 
         if (ContextCompat.checkSelfPermission(ConnectActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED)
@@ -195,7 +196,7 @@ public class ConnectActivity extends AppCompatActivity {
         Intent uploadIntent = new Intent(ConnectActivity.this, UploadActivity.class);
 
         uploadIntent.putExtra("imageBitmap", bmImage);
-        uploadIntent.putExtra("image64", b64Image);
+        uploadIntent.putExtra("imageFile", imageFile);
         uploadIntent.putExtra("azimuth", azimuth);
         uploadIntent.putExtra("latitude", latitude);
         uploadIntent.putExtra("longitude", longitude);
