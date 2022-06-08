@@ -60,9 +60,10 @@ public class UploadActivity extends AppCompatActivity {
         //Get data to upload
         Bundle extras = getIntent().getExtras();
         if(extras != null){
-            byte[] bytes = extras.getByteArray("imageBitmap"); //Decode bytes to use as Bitmap
+            //byte[] bytes = extras.getByteArray("imageBitmap"); //Decode bytes to use as Bitmap
 
-            bmImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            //bmImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            bmImage = Global.imageBitmap;
             imageFile = extras.getString("imageFile");
             azimuth = extras.getDouble("azimuth");
             latitude = extras.getDouble("latitude");
@@ -87,8 +88,6 @@ public class UploadActivity extends AppCompatActivity {
     }
 
     public void PostJSON() {
-        //Retrofit retrofit = new Retrofit.Builder().baseUrl(SERVER_URL).addConverterFactory(GsonConverterFactory.create()).build();
-
         OkHttpClient client = new OkHttpClient();
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
                 .baseUrl(SERVER_URL)
@@ -96,8 +95,6 @@ public class UploadActivity extends AppCompatActivity {
 
         Retrofit retrofit = retrofitBuilder.build();
         ApiService apiService = retrofit.create(ApiService.class);
-
-        //ApiService apiService = new Retrofit.Builder().baseUrl(SERVER_URL).client(client).build().create(ApiService.class);
 
         File file = new File(imageFile);
         Log.d("FILE",imageFile);
@@ -118,7 +115,6 @@ public class UploadActivity extends AppCompatActivity {
         call.enqueue(new Callback<ResponseBody>() {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 Log.d("POST", "Uploaded Succeeded!");
-                Log.d("POST", String.valueOf(rq_imageFile));
             }
 
             @Override

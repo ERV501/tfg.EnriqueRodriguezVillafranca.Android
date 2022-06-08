@@ -227,7 +227,9 @@ public class ConnectActivity extends AppCompatActivity {
 
         imageFile = imageFile.toString();
 
-        uploadIntent.putExtra("imageBitmap", b);
+        Global.imageBitmap = bmImage;
+
+        //uploadIntent.putExtra("imageBitmap", b);
         uploadIntent.putExtra("imageFile", imageFile);
         uploadIntent.putExtra("azimuth", azimuth);
         uploadIntent.putExtra("latitude", latitude);
