@@ -118,8 +118,14 @@ public class ConnectActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(ConnectActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, TAKE_PHOTO_CODE);
 
         try {
-            tempFile = File.createTempFile("virma", ".png", getExternalFilesDir("images")); //Stored in: /storage/emulated/0/Android/data/com.example.virma/files/images
+            File providerPath = new File(getCacheDir(), "virma_images");
+            providerPath.mkdir();
+
+            tempFile = File.createTempFile("virma", ".png", providerPath); //Stored in: /data/user/0/com.example.virma/cache/virma_images/
             imageFile = tempFile.getAbsolutePath();
+
+            Log.d("PATH", String.valueOf(getCacheDir()));
+            Log.d("PATH", String.valueOf(imageFile));
 
             Intent intent = new Intent((MediaStore.ACTION_IMAGE_CAPTURE)); //Create new instance
 
