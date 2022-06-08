@@ -1,6 +1,7 @@
 package com.example.virma;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,8 +14,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.json.JSONObject;
 
 import java.io.DataOutputStream;
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class UploadActivity extends AppCompatActivity {
 
@@ -93,39 +105,41 @@ public class UploadActivity extends AppCompatActivity {
         PostJSON(jsonData);
     }
 
-    public void PostJSON(JSONObject jsonData){
-        Thread threadPost = new Thread(() -> {
-            try {
+    public void PostJSON(JSONObject jsonData) {
+        OkHttpClient client = new OkHttpClient.Builder().build();
+        ApiService apiService = new Retrofit.Builder().baseUrl(SERVER_URL).client(client).build().create(ApiService.class);
 
-                //Stablish connection
-                URL server = new URL(SERVER_URL);
-                HttpURLConnection req = (HttpURLConnection) server.openConnection();
+        RequestBody requestBody =
+                RequestBody.create(
+                        MediaType.parse("image/*"),
+                        imageFile
+                );
 
-                //Configure POST request
-                req.setRequestProperty("Content-Type", "application/json; charset=utf-8"); //Tipo de contenido enviado, codificado como UTF-8
-                req.setRequestProperty("Accept","application/json");
-                req.setDoOutput(true); //Para poder enviar
-                req.setRequestMethod("POST"); //POST request
+        MultipartBody.Part rq_imageFile =
+                MultipartBody.Part.createFormData("imageFile", imageFile.replace("/", "_"), requestBody);
 
-                //Send JSON
-                DataOutputStream writer = new DataOutputStream(req.getOutputStream());
+        RequestBody rq_azimuth =
+                RequestBody.create(
+                        MediaType.parse("text/plain"), String.valueOf(azimuth));
 
-                String finalData = jsonData.toString().replace("\\","");
-                writer.writeBytes(finalData);
+        RequestBody rq_latitude =
+                RequestBody.create(
+                        MediaType.parse("text/plain"), String.valueOf(latitude));
 
-                Log.d("JSON",finalData);
+        RequestBody rq_longitude =
+                RequestBody.create(
+                        MediaType.parse("text/plain"), String.valueOf(longitude));
 
-                //Close connection
-                writer.flush();
-                writer.close();
+        Call<ResponseBody> req = apiService.postImage(rq_imageFile, rq_azimuth, rq_latitude, rq_longitude);
+        req.enqueue(new Callback<ResponseBody>() {
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.d("POST", "Uploaded Succeeded!");
+            }
 
-                req.disconnect();
-
-            } catch (Exception e) {
-                e.printStackTrace();
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.d("POST", "Uploaded Failed!");
             }
         });
-
-        threadPost.start();
     }
 }

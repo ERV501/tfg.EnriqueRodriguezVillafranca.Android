@@ -8,7 +8,7 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 
-public interface ApiService {
+interface ApiService {
     //Mensaje POST de tipo multipart para poder mandar la imagen
     @Multipart
     @POST("/")
