@@ -11,9 +11,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.json.JSONObject;
-
 import java.io.File;
+import java.io.IOException;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -24,12 +23,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class UploadActivity extends AppCompatActivity {
 
     public static final String
-            SERVER_URL = "http://192.168.1.135:3000/images/";
+            SERVER_URL = "http://192.168.1.135:3000/";
 
     Button btnAccept; //Select image button
     Button btnCancel; //Upload image button
@@ -91,13 +89,20 @@ public class UploadActivity extends AppCompatActivity {
     public void PostJSON() {
         //Retrofit retrofit = new Retrofit.Builder().baseUrl(SERVER_URL).addConverterFactory(GsonConverterFactory.create()).build();
 
-        OkHttpClient client = new OkHttpClient.Builder().build();
-        ApiService apiService = new Retrofit.Builder().baseUrl(SERVER_URL).client(client).build().create(ApiService.class);
+        OkHttpClient client = new OkHttpClient();
+        Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
+                .baseUrl(SERVER_URL)
+                .client(client);
+
+        Retrofit retrofit = retrofitBuilder.build();
+        ApiService apiService = retrofit.create(ApiService.class);
+
+        //ApiService apiService = new Retrofit.Builder().baseUrl(SERVER_URL).client(client).build().create(ApiService.class);
 
         File file = new File(imageFile);
-        Log.d("FILE",file.getName());
+        Log.d("FILE",imageFile);
 
-        MultipartBody.Part rq_imageFile = MultipartBody.Part.createFormData("file", file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
+        MultipartBody.Part rq_imageFile = MultipartBody.Part.createFormData("imageFile", file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
         MultipartBody.Part rq_azimuth =
                         MultipartBody.Part.createFormData("azimuth", String.valueOf(azimuth));
@@ -113,11 +118,13 @@ public class UploadActivity extends AppCompatActivity {
         call.enqueue(new Callback<ResponseBody>() {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 Log.d("POST", "Uploaded Succeeded!");
+                Log.d("POST", String.valueOf(rq_imageFile));
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.d("POST", "Uploaded Failed!");
+                Log.d("POST", "Uploaded Succeeded!");
+                Log.d("POST", t.toString());
             }
         });
     }

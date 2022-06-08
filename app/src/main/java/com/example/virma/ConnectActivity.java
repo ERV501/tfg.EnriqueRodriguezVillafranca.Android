@@ -124,9 +124,6 @@ public class ConnectActivity extends AppCompatActivity {
             tempFile = File.createTempFile("virma", ".png", providerPath); //Stored in: /data/user/0/com.example.virma/cache/virma_images/
             imageFile = tempFile.getAbsolutePath();
 
-            Log.d("PATH", String.valueOf(getCacheDir()));
-            Log.d("PATH", String.valueOf(imageFile));
-
             Intent intent = new Intent((MediaStore.ACTION_IMAGE_CAPTURE)); //Create new instance
 
             fileUri = FileProvider.getUriForFile(
@@ -227,6 +224,8 @@ public class ConnectActivity extends AppCompatActivity {
         Intent uploadIntent = new Intent(ConnectActivity.this, UploadActivity.class);
 
         byte[] b = outputStream.toByteArray();
+
+        imageFile = imageFile.toString();
 
         uploadIntent.putExtra("imageBitmap", b);
         uploadIntent.putExtra("imageFile", imageFile);

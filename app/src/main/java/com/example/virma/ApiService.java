@@ -11,7 +11,7 @@ import retrofit2.http.Part;
 interface ApiService {
     //Mensaje POST de tipo multipart para poder mandar la imagen
     @Multipart
-    @POST("/")
+    @POST("http://192.168.1.135:3000/images")
     Call<ResponseBody> postImage(@Part MultipartBody.Part imageFile,
                                  @Part MultipartBody.Part azimuth,
                                  @Part MultipartBody.Part latitude,
