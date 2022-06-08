@@ -3,6 +3,7 @@ package com.example.virma;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
@@ -12,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Build;
@@ -29,6 +31,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Objects;
 
 public class ConnectActivity extends AppCompatActivity {
 
@@ -44,7 +48,13 @@ public class ConnectActivity extends AppCompatActivity {
     TextView textLocation; //Device location readings
 
     //Image info storage variables
-    Bitmap bmImage;
+    File tempFile = null;
+    OutputStream outFile = null;
+    Uri fileUri = null;
+    Bitmap bmImage = null;
+    ByteArrayOutputStream outputStream = null;
+
+    //Image info JSON variables
     String imageFile;
     double azimuth;
     double latitude;
@@ -85,7 +95,11 @@ public class ConnectActivity extends AppCompatActivity {
         // the image chooser function
         btnTakePhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                imageChooser();
+                try {
+                    imageChooser();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -98,18 +112,80 @@ public class ConnectActivity extends AppCompatActivity {
         });
     }
 
-    public void imageChooser() {
+    public void imageChooser() throws IOException {
 
         if (ContextCompat.checkSelfPermission(ConnectActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED)
             ActivityCompat.requestPermissions(ConnectActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, TAKE_PHOTO_CODE);
 
-        Intent intent = new Intent((MediaStore.ACTION_IMAGE_CAPTURE)); //Create new instance
+        try {
+            tempFile = File.createTempFile("virma", ".png", getExternalFilesDir("images")); //Stored in: /storage/emulated/0/Android/data/com.example.virma/files/images
+            imageFile = tempFile.getAbsolutePath();
 
-        startActivityForResult(intent, TAKE_PHOTO_CODE); //Start camera and wait for it to complete
+            Intent intent = new Intent((MediaStore.ACTION_IMAGE_CAPTURE)); //Create new instance
+
+            fileUri = FileProvider.getUriForFile(
+                    this,
+                    BuildConfig.APPLICATION_ID + ".provider",
+                    tempFile
+            );
+
+            Log.d("URI", String.valueOf(fileUri));
+
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+
+            startActivityForResult(intent, TAKE_PHOTO_CODE); //Start camera and wait for it to complete
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
         startReadingServices(); //Start orientation and location services
         getReadings(); //Start receiving orientation and location
     }
+
+    // Called when a launched activity exits,
+    // giving out the requestCode it was started with,
+    // the resultCode it returned,
+    // and any additional data from it
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) { //Check the activity has started correctly
+            if (requestCode == TAKE_PHOTO_CODE) { //Check the code is valid
+                try {
+                    //Get the photo data
+                    bmImage = MediaStore.Images.Media.getBitmap(this.getContentResolver(), fileUri);
+                    outputStream = new ByteArrayOutputStream();
+
+                    //Compress to JPEG format, at 100% quality and store in outputStream
+                    bmImage.compress(Bitmap.CompressFormat.JPEG, 100, outputStream); // bm is the bitmap object
+
+                    if (null != bmImage) {
+                        IVPreviewImage.setImageBitmap(bmImage); //Update preview
+                        stopReadingServices(); //Stop orientation and location services once the photo has been taken
+                        btnUploadPhoto.setEnabled(true); //Enable upload button
+                    }
+
+                    try{
+                        outFile = new FileOutputStream(tempFile);
+                        bmImage.compress(Bitmap.CompressFormat.JPEG, 100, outFile);
+                        outFile.flush();
+                        outFile.close();
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 
     public void getReadings(){
         //Receive orientation readings
@@ -122,57 +198,6 @@ public class ConnectActivity extends AppCompatActivity {
                 , new IntentFilter(LocationReadingService.ACTION_LOCATION_BROADCAST)
         );
 
-    }
-
-    // Called when a launched activity exits,
-    // giving out the requestCode it was started with,
-    // the resultCode it returned,
-    // and any additional data from it
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == RESULT_OK) { //Check the activity has started correctly
-            if (requestCode == TAKE_PHOTO_CODE) { //Check the code is valid
-
-                //Temp file for saving capture
-                Uri uri = null;
-                String fileName = null;
-
-                try {
-                    File tempFile = File.createTempFile("virma", ".png", null); //Directorio temporal del dispositivo por defecto
-                    fileName = tempFile.getAbsolutePath();
-                    uri = Uri.parse(String.valueOf(tempFile));
-
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-
-                //Get the photo data
-                Bundle extras = data.getExtras();
-                bmImage = (Bitmap) extras.get("data");
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-                try (FileOutputStream outputFile = new FileOutputStream(fileName)){
-                    outputFile.write(outputStream.toByteArray());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                //Compress to JPEG format, at 100% quality and store in outputStream
-                bmImage.compress(Bitmap.CompressFormat.JPEG, 100, outputStream); // bm is the bitmap object
-                byte[] b = outputStream.toByteArray();
-
-                imageFile = fileName; //Image to send
-                Log.d("FILEPATH",fileName);
-
-                if (null != bmImage) {
-                    IVPreviewImage.setImageBitmap(bmImage); //Update preview
-                    stopReadingServices(); //Stop orientation and location services once the photo has been taken
-                    btnUploadPhoto.setEnabled(true); //Enable upload button
-                }
-
-            }
-        }
     }
 
     protected void startReadingServices() {
@@ -195,7 +220,9 @@ public class ConnectActivity extends AppCompatActivity {
 
         Intent uploadIntent = new Intent(ConnectActivity.this, UploadActivity.class);
 
-        uploadIntent.putExtra("imageBitmap", bmImage);
+        byte[] b = outputStream.toByteArray();
+
+        uploadIntent.putExtra("imageBitmap", b);
         uploadIntent.putExtra("imageFile", imageFile);
         uploadIntent.putExtra("azimuth", azimuth);
         uploadIntent.putExtra("latitude", latitude);

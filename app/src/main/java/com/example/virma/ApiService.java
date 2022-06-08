@@ -13,7 +13,7 @@ interface ApiService {
     @Multipart
     @POST("/")
     Call<ResponseBody> postImage(@Part MultipartBody.Part imageFile,
-                                 @Part("azimuth") RequestBody azimuth,
-                                 @Part("latitude") RequestBody latitude,
-                                 @Part("longitude") RequestBody longitude);
+                                 @Part MultipartBody.Part azimuth,
+                                 @Part MultipartBody.Part latitude,
+                                 @Part MultipartBody.Part longitude);
 }

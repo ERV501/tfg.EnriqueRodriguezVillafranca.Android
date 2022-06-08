@@ -1,7 +1,7 @@
 package com.example.virma;
 
 import android.graphics.Bitmap;
-import android.net.Uri;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,10 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONObject;
 
-import java.io.DataOutputStream;
 import java.io.File;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -27,11 +24,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class UploadActivity extends AppCompatActivity {
 
     public static final String
-            SERVER_URL = "http://192.168.1.135:3000/images";
+            SERVER_URL = "http://192.168.1.135:3000/images/";
 
     Button btnAccept; //Select image button
     Button btnCancel; //Upload image button
@@ -64,7 +62,9 @@ public class UploadActivity extends AppCompatActivity {
         //Get data to upload
         Bundle extras = getIntent().getExtras();
         if(extras != null){
-            bmImage = (Bitmap) extras.get("imageBitmap");
+            byte[] bytes = extras.getByteArray("imageBitmap"); //Decode bytes to use as Bitmap
+
+            bmImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
             imageFile = extras.getString("imageFile");
             azimuth = extras.getDouble("azimuth");
             latitude = extras.getDouble("latitude");
@@ -77,7 +77,7 @@ public class UploadActivity extends AppCompatActivity {
 
         btnAccept.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                createJSON();
+                PostJSON();
             }
         });
 
@@ -88,50 +88,29 @@ public class UploadActivity extends AppCompatActivity {
         });
     }
 
-    public void createJSON(){
-        JSONObject jsonData = new JSONObject();
+    public void PostJSON() {
+        //Retrofit retrofit = new Retrofit.Builder().baseUrl(SERVER_URL).addConverterFactory(GsonConverterFactory.create()).build();
 
-        try{
-            jsonData.put("imageFile",imageFile);
-            jsonData.put("azimuth",Double.toString(azimuth));
-            jsonData.put("latitude",Double.toString(latitude));
-            jsonData.put("longitude",Double.toString(longitude));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //Send JSON
-        PostJSON(jsonData);
-    }
-
-    public void PostJSON(JSONObject jsonData) {
         OkHttpClient client = new OkHttpClient.Builder().build();
         ApiService apiService = new Retrofit.Builder().baseUrl(SERVER_URL).client(client).build().create(ApiService.class);
 
-        RequestBody requestBody =
-                RequestBody.create(
-                        MediaType.parse("image/*"),
-                        imageFile
-                );
+        File file = new File(imageFile);
+        Log.d("FILE",file.getName());
 
-        MultipartBody.Part rq_imageFile =
-                MultipartBody.Part.createFormData("imageFile", imageFile.replace("/", "_"), requestBody);
+        MultipartBody.Part rq_imageFile = MultipartBody.Part.createFormData("file", file.getName(), RequestBody.create(MediaType.parse("image/*"), file));
 
-        RequestBody rq_azimuth =
-                RequestBody.create(
-                        MediaType.parse("text/plain"), String.valueOf(azimuth));
+        MultipartBody.Part rq_azimuth =
+                        MultipartBody.Part.createFormData("azimuth", String.valueOf(azimuth));
 
-        RequestBody rq_latitude =
-                RequestBody.create(
-                        MediaType.parse("text/plain"), String.valueOf(latitude));
+        MultipartBody.Part rq_latitude =
+                        MultipartBody.Part.createFormData("latitude", String.valueOf(latitude));
 
-        RequestBody rq_longitude =
-                RequestBody.create(
-                        MediaType.parse("text/plain"), String.valueOf(longitude));
+        MultipartBody.Part rq_longitude =
+                        MultipartBody.Part.createFormData("longitude", String.valueOf(longitude));
 
-        Call<ResponseBody> req = apiService.postImage(rq_imageFile, rq_azimuth, rq_latitude, rq_longitude);
-        req.enqueue(new Callback<ResponseBody>() {
+        Call<ResponseBody> call = apiService.postImage(rq_imageFile, rq_azimuth, rq_latitude, rq_longitude);
+
+        call.enqueue(new Callback<ResponseBody>() {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 Log.d("POST", "Uploaded Succeeded!");
             }
