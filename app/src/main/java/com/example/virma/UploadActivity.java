@@ -62,7 +62,6 @@ public class UploadActivity extends AppCompatActivity {
         if(extras != null){
             //byte[] bytes = extras.getByteArray("imageBitmap"); //Decode bytes to use as Bitmap
 
-            //bmImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
             bmImage = Global.imageBitmap;
             imageFile = extras.getString("imageFile");
             azimuth = extras.getDouble("azimuth");
